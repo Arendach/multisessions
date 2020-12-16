@@ -1,0 +1,23 @@
+{
+    "name": "arendach/multisessions",
+    "type": "library",
+    "license": "MIT",
+    "description": "Multi session package",
+    "authors": [
+        {
+            "name": "Arendach Taras",
+            "email": "arendach.taras@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "illuminate/support": ">=v7.0.0",
+        "php": ">=7.2"
+    },
+    "version": "1.0.1",
+    "autoload": {
+        "psr-4": {
+            "MultiSessions\\": "src"
+        }
+    }
+}
