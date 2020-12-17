@@ -2,16 +2,20 @@
 
 namespace MultiSessions\Commaands;
 
+use Illuminate\Support\Facades\Cache;
+
 class MultiSessionsClear extends Command
 {
     protected $signature = 'multisessions:clear';
 
     protected $description = 'Clear multisessions';
 
-    public function handle()
+    public function handle(): void
     {
-        collect(config('multisessions'))->unique('driver')->each(function (string $driver){
-            \Cache::driver($driver)->forget();
-        });
+        $sessions = config('multisessions');
+
+        foreach ($sessions as $name => $session) {
+            Cache::driver($session['driver'])->forget();
+        }
     }
 }

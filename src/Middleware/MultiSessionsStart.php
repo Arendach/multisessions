@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MultiSessions\Middleware;
 
+include __DIR__ . '/../macro.php';
+
 use Closure;
 use Cache;
 use DateTime;
@@ -58,7 +60,7 @@ class MultiSessionsStart
     public function rebootCookies(string $name, array $data): void
     {
         $id = $this->getId($name);
-        
+
         $this->response->withCookie("session_$name", $id, $data['lifetime']);
     }
 
@@ -67,16 +69,25 @@ class MultiSessionsStart
         $id = $this->getId($name);
         $cacheName = "session_{$name}_{$id}";
 
-        Cache::remember($cacheName, $data['lifetime'], function () use ($data, $cacheName) {
-            return Cache::driver($data['driver'])->has($cacheName)
-                ? Cache::driver($data['driver'])->get($cacheName)
-                : null;
-        });
+        $sessionData = Cache::driver($data['driver'])->has($cacheName) ? Cache::driver($data['driver'])->get($cacheName) : null;
+
+        Cache::driver($data['driver'])->forget($cacheName);
+        Cache::driver($data['driver'])->add($cacheName, $sessionData, $data['lifetime'] * 60);
     }
 
     private function getId(string $name): string
     {
-        $id = $this->request->cookie($name) ? $this->request->cookie($name) : $this->generateId();
+        $name = "session_{$name}";
+
+        if (isset($this->ids[$name])) {
+            return $this->ids[$name];
+        }
+
+        if (Cookie::hasQueuedCookie($name)) {
+            $id = Cookie::getQueuedCookie($name);
+        } else {
+            $id = $this->request->cookie($name) ? $this->request->cookie($name) : $this->generateId();
+        }
 
         $this->ids[$name] = $id;
 

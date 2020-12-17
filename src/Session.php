@@ -10,16 +10,44 @@ use Illuminate\Support\Facades\Cookie;
 
 class Session
 {
-    private $session = 'default';
+    /**
+     * Session name from config file
+     *
+     * @var string
+     */
+    private $session;
+
+    /**
+     * Session id
+     *
+     * @var string
+     */
     private $id;
+
+    /**
+     * Array of session config
+     *
+     * @var array
+     */
     private $config;
 
-    public function __construct()
+    /**
+     * Session constructor.
+     * @param string $session
+     */
+    public function __construct(string $session = 'default')
     {
-        $this->id = $this->getId();
-        $this->config = $this->getConfig();
+        $this->session = $session;
+        $this->config = $this->setConfig();
+        $this->id = $this->setId();
     }
 
+    /**
+     * Change session runtime
+     *
+     * @param string $session
+     * @return $this
+     */
     public function session(string $session): self
     {
         $this->session = $session;
@@ -27,76 +55,104 @@ class Session
         return $this;
     }
 
-    public function set(string $key, $data): self
+    /**
+     * Set data into session
+     *
+     * @param string $key
+     * @param $value
+     * @return $this
+     */
+    public function set(string $key, $value): self
     {
-        $session = $this->getSession();
-        $id = $this->getId();
+        $session = $this->getKey();
+        $data = $this->get();
 
-        Cache::driver($this->config['driver'])->remember($key, $this->config['lifetime'], function () use ($data) {
-            return $data;
-        });
+        $data = array_merge($data, [$key => $value]);
+
+        Cache::driver($this->config['driver'])->forget($session);
+        Cache::driver($this->config['driver'])->add($session, $data, $this->config['lifetime'] * 60);
 
         return $this;
     }
 
+    /**
+     * Get data from session
+     *
+     * @param string|null $key
+     * @return mixed
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function get(string $key = null)
     {
-        $name = $this->getSession();
-        $id = $this->getId();
+        $session = $this->getKey();
 
-        return Cache::driver($this->config['driver'])->get("session_{$name}_{$id}");
+        $data = Cache::driver($this->config['driver'])->get($session);
+
+        return $key
+            ? ($data[$key] ?? null)
+            : (is_array($data) ? $data : []);
     }
 
+    /**
+     * Check if session has data
+     *
+     * @param string $key
+     * @return bool
+     */
     public function has(string $key): bool
     {
-        $session = $this->getSession();
-        $id = $this->getId();
+        $data = $this->get();
 
-        return Cache::has("{$session}.{$id}.{$key}");
+        return isset($data[$key]);
     }
 
-
-    private function initIfEmpty(): void
+    /**
+     * Get session id from cookie or create new
+     *
+     * @return string
+     */
+    private function setId(): string
     {
-        $session = $this->getSession();
-        $id = $this->getId();
+        $session = "session_{$this->session}";
 
-        if (!Cache::has($session)) {
-            Cache::put($session, []);
-        }
-
-        $data = Cache::get($session);
-
-        if (!isset($data[$id])) {
-            $data[$id] = [];
-            Cache::put($session, $data);
-        }
-    }
-
-    private function getId(): string
-    {
-        $session = $this->getSession();
-
-        $hasCookie = Cookie::get('session_default');
-
-        if ($hasCookie) {
+        if (Cookie::has($session)) {
             return Cookie::get($session);
         }
 
         $id = $this->generateId();
 
-        Cookie::queue('session_default', $id, config("multisessions.{$session}.lifetime"));
+        Cookie::queue($session, $id, $this->config['lifetime']);
 
         return $id;
     }
 
-    private function getConfig(): array
+    /**
+     * Get config for this session
+     *
+     * @return array
+     */
+    private function setConfig(): array
     {
         return config("multisessions.{$this->session}");
     }
 
+    /**
+     * Generate unique string
+     *
+     * @return string
+     */
     private function generateId(): string
     {
         return Str::random(32);
+    }
+
+    /**
+     * Get session name(key) into cache storage
+     *
+     * @return string
+     */
+    private function getKey(): string
+    {
+        return "session_{$this->session}_{$this->id}";
     }
 }
