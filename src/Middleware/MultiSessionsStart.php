@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace MultiSessions\Middleware;
 
-include __DIR__ . '/../macro.php';
-
 use Closure;
 use Cache;
 use DateTime;
@@ -34,9 +32,9 @@ class MultiSessionsStart
     /**
      * @param Request $request
      * @param Closure $next
-     * @return mixed
+     * @return Response
      */
-    public function handle($request, Closure $next)
+    public function handle($request, Closure $next): Response
     {
         $this->request = $request;
 

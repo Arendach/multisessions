@@ -1,6 +1,6 @@
 <?php
 
-namespace MultiSessions\Commaands;
+namespace MultiSessions\Commands;
 
 use Illuminate\Support\Facades\Cache;
 
