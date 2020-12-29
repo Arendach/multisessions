@@ -18,9 +18,6 @@
     "autoload": {
         "psr-4": {
             "MultiSessions\\": "src"
-        },
-        "files": [
-            "src/macro.php"
-        ]
+        }
     }
 }

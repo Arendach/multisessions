@@ -15,6 +15,8 @@ class MultiSessionsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        require __DIR__ . '/macro.php';
+
         $this->publishes([
             __DIR__ . '/config/multisessions.php' => config_path('multisessions.php'),
         ], 'multisessions');
