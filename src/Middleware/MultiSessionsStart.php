@@ -6,7 +6,6 @@ namespace MultiSessions\Middleware;
 
 use Closure;
 use Cache;
-use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cookie;
@@ -34,7 +33,7 @@ class MultiSessionsStart
      * @param Closure $next
      * @return Response
      */
-    public function handle($request, Closure $next): Response
+    public function handle($request, Closure $next)
     {
         $this->request = $request;
 
