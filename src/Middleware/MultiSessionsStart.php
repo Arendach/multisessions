@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MultiSessions\Middleware;
+namespace Arendach\MultiSessions\Middleware;
 
 use Closure;
 use Cache;
@@ -57,8 +57,8 @@ class MultiSessionsStart
     public function rebootCookies(string $name, array $data): void
     {
         $id = $this->getId($name);
-
-        $this->response->withCookie("session_$name", $id, $data['lifetime']);
+        
+        $this->response->withCookie(cookie("session_$name", $id, $data['lifetime']));
     }
 
     public function rebootCache(string $name, array $data): void

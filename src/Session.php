@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MultiSessions;
+namespace Arendach\MultiSessions;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cookie;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class Session
 {
@@ -80,7 +81,7 @@ class Session
      *
      * @param string|null $key
      * @return mixed
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function get(string $key = null)
     {
@@ -98,6 +99,7 @@ class Session
      *
      * @param string $key
      * @return bool
+     * @throws InvalidArgumentException
      */
     public function has(string $key): bool
     {
