@@ -157,4 +157,9 @@ class Session
     {
         return "session_{$this->session}_{$this->id}";
     }
+
+    public static function abstractKey(string $key): string
+    {
+        return "session_{$key}";
+    }
 }
