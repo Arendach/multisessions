@@ -46,6 +46,10 @@ class MultiSessionsStart
 
     public function rebootSession(): void
     {
+        if (!method_exists($this->response, 'withCookie')) {
+            return;
+        }
+
         $sessions = config('multisessions');
 
         foreach ($sessions as $name => $session) {
@@ -57,7 +61,7 @@ class MultiSessionsStart
     public function rebootCookies(string $name, array $data): void
     {
         $id = $this->getId($name);
-        
+
         $this->response->withCookie(cookie("session_$name", $id, $data['lifetime']));
     }
 
