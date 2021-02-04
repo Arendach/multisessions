@@ -9,7 +9,6 @@
             "email": "arendach.taras@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
     "require": {
         "php": ">=7.2"
     },
