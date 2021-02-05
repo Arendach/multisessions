@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Arendach\MultiSessions\Middleware;
 
+use Closure;
 use Arendach\MultiSessions\Session;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
