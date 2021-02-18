@@ -44,19 +44,6 @@ class Session
     }
 
     /**
-     * Change session runtime
-     *
-     * @param string $session
-     * @return $this
-     */
-    public function session(string $session): self
-    {
-        $this->session = $session;
-
-        return $this;
-    }
-
-    /**
      * Set data into session
      *
      * @param string $key
@@ -117,13 +104,11 @@ class Session
     {
         $session = "session_{$this->session}";
 
-        if (Cookie::has($session)) {
-            return Cookie::get($session);
+        if (request()->cookies->has($session) && request()->cookies->get($session)) {
+            $id = request()->cookies->get($session);
+        } else {
+            $id = $this->generateId();
         }
-
-        $id = $this->generateId();
-
-        Cookie::queue($session, $id, $this->config['lifetime']);
 
         return $id;
     }
@@ -153,13 +138,34 @@ class Session
      *
      * @return string
      */
-    private function getKey(): string
+    public function getKey(): string
     {
         return "session_{$this->session}_{$this->id}";
     }
 
+    /**
+     * @param string $key
+     * @return string
+     */
     public static function abstractKey(string $key): string
     {
         return "session_{$key}";
+    }
+
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param string $name
+     * @return static
+     */
+    public static function instance(string $name): self
+    {
+        return resolve(self::abstractKey($name));
     }
 }

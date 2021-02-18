@@ -1,4 +1,4 @@
-# Vodafone multisessions
+# Laravel Мультисесії
 
 ## Установка
 
@@ -20,6 +20,9 @@ php artisan vendor:publish --tag=multisessions
 ```
 
 ###### Middleware для перезагрузки сесій якщо змінена IP адреса користувача
+> Використовується в звязці з пакетами `arendach/vodafone-msisdn` та/або `arendach/vodafone-name`
+> 
+> Для роботи необхідно передати в заголовках `X-USER-IP-ADDRESS` і налаштувати cors, доодати заголовок в масив `exposed_headers`
 ```php
 // app/Http/Kernel.php -> middlewareGroups['web']
 ...
@@ -31,7 +34,7 @@ php artisan vendor:publish --tag=multisessions
 ```php
 // Додати в app.providers
 ...
-\Arendach\MultiSessions\MultiSessionsServiceProvider::class
+\Arendach\MultiSessions\Providers\MultiSessionsServiceProvider::class
 ...
 ```
 
@@ -64,3 +67,31 @@ return [
 > `driver` - сховище для кешу
 > 
 > `lifetime` - час життя сесії в хвилинах
+
+## Як використовувати
+
+> При підключенні сервіс провайдера реєструється singleton для кожної сесії.
+> 
+> Для того щоб отримати екземпляр сесії необхідно визвати статичний метод `instance`
+
+```php
+$key = 'personification'; // клюю масива з файла конфігурації
+
+$sesion = \Arendach\MultiSessions\Session::instance($key);
+```
+
+> В класі Session доступні настуні публічні методи
+
+```php
+// set(string $key, mixed $value): self
+// метод записує в сховище дані по ключу
+$session->set('slug-key', 'hello world'); 
+
+// has(string $key): bool
+// метод перевіряє наявність даних по ключу в сесії, вертає true навіть якщо значення null
+$session->has('slug-key'); // true
+
+// get(string $key): mixed
+// метод повертає дані з сесії по ключу або null якщо немає нічого
+$session->get('slug-key'); // hello world
+```

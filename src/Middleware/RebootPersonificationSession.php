@@ -12,8 +12,8 @@ use Arendach\VodafoneName\Name;
 use Arendach\VodafoneMsisdn\Msisdn;
 
 /**
- * Class DestroyMultiSessionAfterChangeIp
- * @package Arendach\MultiSessions\Middlewares
+ * Class RebootPersonificationSession
+ * @package Arendach\MultiSessions\Middleware
  *
  * Need require arendach/vodafone-name, arendach/vodafone-msidn
  */
@@ -23,6 +23,14 @@ class RebootPersonificationSession
      * @var Session
      */
     private $cacheStorage;
+
+    /**
+     * RebootPersonificationSession constructor.
+     */
+    public function __construct()
+    {
+        $this->cacheStorage = Session::instance('personification');
+    }
 
     /**
      * @param Request $request
@@ -37,7 +45,7 @@ class RebootPersonificationSession
             return $next($request);
         }
 
-        $oldIp = $this->getCacheStorage()->get('ip_address');
+        $oldIp = $this->cacheStorage->get('ip_address');
         $newIp = $ip;
 
         if ($oldIp != $newIp) {
@@ -45,20 +53,9 @@ class RebootPersonificationSession
             resolve(Name::class)->rebootSession();
         }
 
-        $this->getCacheStorage()->set('ip_address', $newIp);
+        $this->cacheStorage->set('ip_address', $newIp);
 
         return $next($request);
-    }
-
-    private function getCacheStorage(): Session
-    {
-        $abstract = Session::abstractKey('personification');
-
-        if (!$this->cacheStorage) {
-            $this->cacheStorage = app($abstract);
-        }
-
-        return $this->cacheStorage;
     }
 
     /**

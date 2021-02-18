@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Arendach\MultiSessions\Middleware;
 
+use Arendach\MultiSessions\Session;
 use Closure;
 use Cache;
 use Illuminate\Http\Request;
@@ -39,17 +40,15 @@ class MultiSessionsStart
 
         $this->response = $next($request);
 
-        $this->rebootSession();
+        if (method_exists($this->response, 'withCookie')) {
+            $this->rebootSession();
+        }
 
         return $this->response;
     }
 
     public function rebootSession(): void
     {
-        if (!method_exists($this->response, 'withCookie')) {
-            return;
-        }
-
         $sessions = config('multisessions');
 
         foreach ($sessions as $name => $session) {
@@ -60,43 +59,19 @@ class MultiSessionsStart
 
     public function rebootCookies(string $name, array $data): void
     {
-        $id = $this->getId($name);
+        $id = Session::instance($name)->getId();
+        $key = Session::abstractKey($name);
 
-        $this->response->withCookie(cookie("session_$name", $id, $data['lifetime']));
+        $this->response->withCookie(cookie($key, $id, $data['lifetime']));
     }
 
     public function rebootCache(string $name, array $data): void
     {
-        $id = $this->getId($name);
-        $cacheName = "session_{$name}_{$id}";
+        $cacheName = Session::instance($name)->getKey();
 
         $sessionData = Cache::driver($data['driver'])->has($cacheName) ? Cache::driver($data['driver'])->get($cacheName) : null;
 
         Cache::driver($data['driver'])->forget($cacheName);
         Cache::driver($data['driver'])->add($cacheName, $sessionData, $data['lifetime'] * 60);
-    }
-
-    private function getId(string $name): string
-    {
-        $name = "session_{$name}";
-
-        if (isset($this->ids[$name])) {
-            return $this->ids[$name];
-        }
-
-        if (Cookie::hasQueuedCookie($name)) {
-            $id = Cookie::getQueuedCookie($name);
-        } else {
-            $id = $this->request->cookie($name) ? $this->request->cookie($name) : $this->generateId();
-        }
-
-        $this->ids[$name] = $id;
-
-        return $id;
-    }
-
-    private function generateId(): string
-    {
-        return Str::random(32);
     }
 }
