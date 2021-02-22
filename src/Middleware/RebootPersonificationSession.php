@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Arendach\MultiSessions\Middleware;
 
+use Throwable;
+use Crypt;
 use Closure;
+use Log;
 use Arendach\MultiSessions\Session;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -48,7 +51,7 @@ class RebootPersonificationSession
         $oldIp = $this->cacheStorage->get('ip_address');
         $newIp = $ip;
 
-        if ($oldIp != $newIp) {
+        if ($oldIp != null && $oldIp != $newIp) {
             resolve(Msisdn::class)->rebootSession();
             resolve(Name::class)->rebootSession();
         }
@@ -64,8 +67,37 @@ class RebootPersonificationSession
      */
     private function getIp($request): string
     {
-        $ipHeader = $request->header('X-USER-IP-ADDRESS');
+        $userAddress = $this->getXUserAddress($request);
 
-        return $ipHeader ? $ipHeader : $request->ip();
+        return $userAddress ? $userAddress : $request->ip();
+    }
+
+    /**
+     * @param Request $request
+     * @return string|null
+     */
+    private function getXUserAddress(Request $request): ?string
+    {
+        $ipHeader = $request->get('x-user-address');
+
+        if (!$ipHeader) {
+            return null;
+        }
+
+        if (filter_var($ipHeader, FILTER_VALIDATE_IP)) {
+            return $ipHeader;
+        }
+
+        try {
+
+            return Crypt::decryptString($ipHeader);
+
+        } catch (Throwable $exception) {
+
+            Log::error($exception->getMessage() . PHP_EOL . $exception->getFile() . PHP_EOL . $exception->getTraceAsString());
+
+            return '127.0.0.1';
+
+        }
     }
 }
