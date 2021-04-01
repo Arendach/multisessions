@@ -11,8 +11,6 @@ use Log;
 use Arendach\MultiSessions\Session;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Arendach\VodafoneName\Name;
-use Arendach\VodafoneMsisdn\Msisdn;
 
 /**
  * Class RebootPersonificationSession
@@ -52,8 +50,13 @@ class RebootPersonificationSession
         $newIp = $ip;
 
         if ($oldIp != null && $oldIp != $newIp) {
-            resolve(Msisdn::class)->rebootSession();
-            resolve(Name::class)->rebootSession();
+            if (class_exists('\Arendach\VodafoneName\Name')) {
+                resolve('\Arendach\VodafoneName\Name')->rebootSession();
+            }
+            
+            if (class_exists('\Arendach\VodafoneMsisdn\Msisdn')) {
+                resolve('\Arendach\VodafoneMsisdn\Msisdn')->rebootSession();
+            }
         }
 
         $this->cacheStorage->set('ip_address', $newIp);
