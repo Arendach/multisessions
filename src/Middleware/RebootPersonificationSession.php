@@ -81,7 +81,7 @@ class RebootPersonificationSession
      */
     private function getXUserAddress(Request $request): ?string
     {
-        $ipHeader = $request->get('x-user-address');
+        $ipHeader = $request->headers->get('x-user-address');
 
         if (!$ipHeader) {
             return null;
